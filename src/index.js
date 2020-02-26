@@ -47,6 +47,7 @@ const IPropTypes = {
 	navBarOverlapHeight: number,
 	scrollViewBackgroundColor: string,
 }
+let scrollPosY = 0
 
 class ParallaxScrollView extends Component {
 	constructor(props) {
@@ -183,7 +184,7 @@ class ParallaxScrollView extends Component {
 
   	componentDidUpdate(prevProps) {
 		if (prevProps.resetScroll !== this.props.resetScroll) {
-			this.getScrollResponder().scrollTo({x: 0, y: 0, animated: false})
+			this.getScrollResponder().scrollTo({x: 0, y: scrollPosY - 0.5, animated: false})
 			this.props.resetScrollSuccessfull()
 		}
 	}
@@ -207,7 +208,7 @@ class ParallaxScrollView extends Component {
 		} else {
 			onChangeHeaderVisibility(true)
 		}
-
+		scrollPosY = e.nativeEvent.contentOffset.y
 		prevOnScroll(e)
 	}
 
