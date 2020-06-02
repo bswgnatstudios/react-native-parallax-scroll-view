@@ -43,8 +43,11 @@ const IPropTypes = {
 	contentContainerStyle: ViewPropTypes.style,
 	outputScaleValue: number,
 	resetScroll: bool,
-	resetScrollSuccessfull: func
+	resetScrollSuccessfull: func,
+	navBarOverlapHeight: number,
+	scrollViewBackgroundColor: string,
 }
+let scrollPosY = 0
 
 class ParallaxScrollView extends Component {
 	constructor(props) {
@@ -94,6 +97,7 @@ class ParallaxScrollView extends Component {
 			style,
 			contentContainerStyle,
 			outputScaleValue,
+			scrollViewBackgroundColor,
 			...scrollViewProps
 		} = this.props
 
@@ -129,7 +133,7 @@ class ParallaxScrollView extends Component {
 		const scrollElement = renderScrollComponent(scrollViewProps)
 		return (
 			<View
-				style={[style, styles.container]}
+			style={[style, styles.container,{backgroundColor: scrollViewBackgroundColor}]}
 				onLayout={e => this._maybeUpdateViewDimensions(e)}
 			>
 				{background}
@@ -137,7 +141,7 @@ class ParallaxScrollView extends Component {
 					scrollElement,
 					{
 						ref: SCROLLVIEW_REF,
-						style: [styles.scrollView, scrollElement.props.style],
+						style: [style, scrollElement.props.style],
 						scrollEventThrottle: 1,
 						// Using Native Driver greatly optimizes performance
 						onScroll: Animated.event(
@@ -180,7 +184,7 @@ class ParallaxScrollView extends Component {
 
   	componentDidUpdate(prevProps) {
 		if (prevProps.resetScroll !== this.props.resetScroll) {
-			this.getScrollResponder().scrollTo({x: 0, y: 0, animated: false})
+			this.getScrollResponder().scrollTo({x: 0, y: scrollPosY - 0.5, animated: false})
 			this.props.resetScrollSuccessfull()
 		}
 	}
@@ -190,10 +194,11 @@ class ParallaxScrollView extends Component {
 			parallaxHeaderHeight,
 			stickyHeaderHeight,
 			onChangeHeaderVisibility,
+			navBarOverlapHeight,
 			onScroll: prevOnScroll = () => { }
 		} = this.props
 		this.props.scrollEvent && this.props.scrollEvent(e)
-		const p = pivotPoint(parallaxHeaderHeight, stickyHeaderHeight + 55)
+		const p = pivotPoint(parallaxHeaderHeight, stickyHeaderHeight + navBarOverlapHeight)
 
 		// This optimization wont run, since we update the animation value directly in onScroll event
 		// this._maybeUpdateScrollPosition(e)
@@ -203,7 +208,7 @@ class ParallaxScrollView extends Component {
 		} else {
 			onChangeHeaderVisibility(true)
 		}
-
+		scrollPosY = e.nativeEvent.contentOffset.y
 		prevOnScroll(e)
 	}
 
@@ -447,7 +452,9 @@ ParallaxScrollView.defaultProps = {
 	contentContainerStyle: null,
 	outputScaleValue: 5,
 	resetScroll: false,
-	resetScrollSuccessfull: () => {}
+	resetScrollSuccessfull: () => {},
+	navBarOverlapHeight: 0,
+	scrollViewBackgroundColor: 'transparent'
 }
 
 module.exports = ParallaxScrollView
